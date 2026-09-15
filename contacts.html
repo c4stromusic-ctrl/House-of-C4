@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contacts — House of C4</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #0a0a0a;
+            color: #e0e0e0;
+            padding: 1rem;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        h1 {
+            font-size: 24px;
+            margin-bottom: 1.5rem;
+            font-weight: 500;
+        }
+        .tabs {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid #333;
+            padding-bottom: 1rem;
+        }
+        .tab-btn {
+            padding: 8px 16px;
+            background: transparent;
+            border: none;
+            color: #888;
+            cursor: pointer;
+            font-size: 14px;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+        .tab-btn.active {
+            color: #fff;
+            border-bottom-color: #6b5eff;
+        }
+        .tab-btn:hover {
+            color: #ccc;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .form-section {
+            background: #1a1a1a;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            border: 1px solid #333;
+        }
+        h2 {
+            font-size: 16px;
+            margin-bottom: 1.5rem;
+            font-weight: 500;
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        .form-row.full {
+            grid-template-columns: 1fr;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            font-size: 12px;
+            color: #999;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        input, textarea {
+            padding: 8px 12px;
+            background: #0a0a0a;
+            border: 1px solid #444;
+            border-radius: 4px;
+            color: #e0e0e0;
+            font-size: 13px;
+            font-family: inherit;
+        }
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #6b5eff;
+            background: #111;
+        }
+        textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+        button {
+            padding: 10px 20px;
+            background: #6b5eff;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background: #5a4dd9;
+        }
+        button:active {
+            transform: scale(0.98);
+        }
+        .contacts-list {
+            display: grid;
+            gap: 1rem;
+        }
+        .contact-card {
+            background: #1a1a1a;
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+        .contact-info h3 {
+            font-size: 14px;
+            margin-bottom: 4px;
+            color: #fff;
+        }
+        .contact-info p {
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 4px;
+        }
+        .contact-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .btn-small {
+            padding: 6px 12px;
+            background: #333;
+            color: #ccc;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .btn-small:hover {
+            background: #444;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 2rem;
+            color: #666;
+        }
+        .success-msg {
+            background: #1a3a1a;
+            color: #4ade80;
+            padding: 12px;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+            font-size: 13px;
+            display: none;
+        }
+        .success-msg.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Contacts</h1>
+        
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('pitchcraft')">Pitchcraft</button>
+            <button class="tab-btn" onclick="switchTab('dj')">DJ gigs</button>
+            <button class="tab-btn" onclick="switchTab('events')">Event planning</button>
+        </div>
+
+        <!-- PITCHCRAFT TAB -->
+        <div id="pitchcraft" class="tab-content active">
+            <div class="form-section">
+                <div class="success-msg" id="pitchcraft-success">Contact added! Tell Castro to sync with Claude.</div>
+                <h2>Add Pitchcraft client</h2>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Name</label>
+                        <input type="text" id="pitch-name" placeholder="e.g. João Silva">
+                    </div>
+                    <div class="form-group">
+                        <label>Role</label>
+                        <input type="text" id="pitch-role" placeholder="e.g. Event curator">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="pitch-email" placeholder="joao@venue.pt">
+                    </div>
+                    <div class="form-group">
+                        <label>Phone</label>
+                        <input type="tel" id="pitch-phone" placeholder="+351 91 234 5678">
+                    </div>
+                </div>
+                <div class="form-row full">
+                    <div class="form-group">
+                        <label>Notes</label>
+                        <textarea id="pitch-notes" placeholder="Interested in Q4 2026 programming..."></textarea>
+                    </div>
+                </div>
+                <button onclick="addContact('pitchcraft')">Add contact</button>
+            </div>
+
+            <h2 style="margin-top: 2rem;">Saved contacts</h2>
+            <div class="contacts-list" id="pitchcraft-list"></div>
+            <button onclick="copyToClipboard('pitchcraft')" style="margin-top: 1rem; background: #333; color: #ccc;">Copy all for Claude</button>
+        </div>
+
+        <!-- DJ GIGS TAB -->
+        <div id="dj" class="tab-content">
+            <div class="form-section">
+                <div class="success-msg" id="dj-success">Gig contact added! Tell Castro to sync with Claude.</div>
+                <h2>Add DJ venue or promoter</h2>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Venue/Promoter name</label>
+                        <input type="text" id="dj-name" placeholder="e.g. Bar Lux">
+                    </div>
+                    <div class="form-group">
+                        <label>Contact person</label>
+                        <input type="text" id="dj-contact" placeholder="e.g. António">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="dj-email" placeholder="bar@lux.pt">
+                    </div>
+                    <div class="form-group">
+                        <label>Phone</label>
+                        <input type="tel" id="dj-phone" placeholder="+351 91 987 6543">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Location</label>
+                        <input type="text" id="dj-location" placeholder="Príncipe Real, Lisbon">
+                    </div>
+                    <div class="form-group">
+                        <label>Rate/Terms</label>
+                        <input type="text" id="dj-rate" placeholder="€200/night">
+                    </div>
+                </div>
+                <div class="form-row full">
+                    <div class="form-group">
+                        <label>Notes</label>
+                        <textarea id="dj-notes" placeholder="2nd Saturdays preferred..."></textarea>
+                    </div>
+                </div>
+                <button onclick="addContact('dj')">Add venue</button>
+            </div>
+
+            <h2 style="margin-top: 2rem;">Saved venues</h2>
+            <div class="contacts-list" id="dj-list"></div>
+            <button onclick="copyToClipboard('dj')" style="margin-top: 1rem; background: #333; color: #ccc;">Copy all for Claude</button>
+        </div>
+
+        <!-- EVENT PLANNING TAB -->
+        <div id="events" class="tab-content">
+            <div class="form-section">
+                <div class="success-msg" id="events-success">Event contact added! Tell Castro to sync with Claude.</div>
+                <h2>Add event planning contact</h2>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Organization/Person</label>
+                        <input type="text" id="event-org" placeholder="e.g. Event Logistics Rio">
+                    </div>
+                    <div class="form-group">
+                        <label>Role</label>
+                        <input type="text" id="event-role" placeholder="e.g. Coordinator">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="event-email" placeholder="coord@eventlogisticsrio.com">
+                    </div>
+                    <div class="form-group">
+                        <label>Phone</label>
+                        <input type="tel" id="event-phone" placeholder="+55 21 9999 8888">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Location</label>
+                        <input type="text" id="event-location" placeholder="Rio de Janeiro">
+                    </div>
+                    <div class="form-group">
+                        <label>Service/Capacity</label>
+                        <input type="text" id="event-service" placeholder="Full production">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Rate</label>
+                        <input type="text" id="event-rate" placeholder="Quote pending">
+                    </div>
+                </div>
+                <div class="form-row full">
+                    <div class="form-group">
+                        <label>Notes</label>
+                        <textarea id="event-notes" placeholder="Joá area specialists..."></textarea>
+                    </div>
+                </div>
+                <button onclick="addContact('events')">Add contact</button>
+            </div>
+
+            <h2 style="margin-top: 2rem;">Saved contacts</h2>
+            <div class="contacts-list" id="events-list"></div>
+            <button onclick="copyToClipboard('events')" style="margin-top: 1rem; background: #333; color: #ccc;">Copy all for Claude</button>
+        </div>
+    </div>
+
+    <script>
+        const STORAGE_KEYS = {
+            pitchcraft: 'contacts_pitchcraft',
+            dj: 'contacts_dj',
+            events: 'contacts_events'
+        };
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById(tab).classList.add('active');
+            event.target.classList.add('active');
+            renderList(tab);
+        }
+
+        function addContact(type) {
+            let contact = {};
+            let fields = [];
+
+            if (type === 'pitchcraft') {
+                contact = {
+                    name: document.getElementById('pitch-name').value,
+                    role: document.getElementById('pitch-role').value,
+                    email: document.getElementById('pitch-email').value,
+                    phone: document.getElementById('pitch-phone').value,
+                    notes: document.getElementById('pitch-notes').value,
+                    added: new Date().toLocaleDateString()
+                };
+                fields = ['pitch-name', 'pitch-role', 'pitch-email', 'pitch-phone', 'pitch-notes'];
+            } else if (type === 'dj') {
+                contact = {
+                    name: document.getElementById('dj-name').value,
+                    contact: document.getElementById('dj-contact').value,
+                    email: document.getElementById('dj-email').value,
+                    phone: document.getElementById('dj-phone').value,
+                    location: document.getElementById('dj-location').value,
+                    rate: document.getElementById('dj-rate').value,
+                    notes: document.getElementById('dj-notes').value,
+                    added: new Date().toLocaleDateString()
+                };
+                fields = ['dj-name', 'dj-contact', 'dj-email', 'dj-phone', 'dj-location', 'dj-rate', 'dj-notes'];
+            } else if (type === 'events') {
+                contact = {
+                    org: document.getElementById('event-org').value,
+                    role: document.getElementById('event-role').value,
+                    email: document.getElementById('event-email').value,
+                    phone: document.getElementById('event-phone').value,
+                    location: document.getElementById('event-location').value,
+                    service: document.getElementById('event-service').value,
+                    rate: document.getElementById('event-rate').value,
+                    notes: document.getElementById('event-notes').value,
+                    added: new Date().toLocaleDateString()
+                };
+                fields = ['event-org', 'event-role', 'event-email', 'event-phone', 'event-location', 'event-service', 'event-rate', 'event-notes'];
+            }
+
+            if (!contact.name && !contact.org) {
+                alert('Please enter a name or organization');
+                return;
+            }
+
+            let contacts = JSON.parse(localStorage.getItem(STORAGE_KEYS[type]) || '[]');
+            contacts.push(contact);
+            localStorage.setItem(STORAGE_KEYS[type], JSON.stringify(contacts));
+
+            fields.forEach(id => document.getElementById(id).value = '');
+
+            const msg = document.getElementById(type + '-success');
+            msg.classList.add('show');
+            setTimeout(() => msg.classList.remove('show'), 3000);
+
+            renderList(type);
+        }
+
+        function deleteContact(type, index) {
+            let contacts = JSON.parse(localStorage.getItem(STORAGE_KEYS[type]) || '[]');
+            contacts.splice(index, 1);
+            localStorage.setItem(STORAGE_KEYS[type], JSON.stringify(contacts));
+            renderList(type);
+        }
+
+        function exportContacts(type) {
+            let contacts = JSON.parse(localStorage.getItem(STORAGE_KEYS[type]) || '[]');
+            const text = JSON.stringify(contacts, null, 2);
+            const blob = new Blob([text], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `contacts-${type}-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+        }
+
+        function copyToClipboard(type) {
+            let contacts = JSON.parse(localStorage.getItem(STORAGE_KEYS[type]) || '[]');
+            if (contacts.length === 0) {
+                alert('No contacts to copy');
+                return;
+            }
+
+            let formatted = '';
+            if (type === 'pitchcraft') {
+                formatted = contacts.map(c => 
+                    `${c.name} | ${c.role} | ${c.email} | ${c.phone} | ${c.notes || 'N/A'}`
+                ).join('\n');
+            } else if (type === 'dj') {
+                formatted = contacts.map(c => 
+                    `${c.name} | ${c.contact} | ${c.email} | ${c.phone} | ${c.location} | ${c.rate} | ${c.notes || 'N/A'}`
+                ).join('\n');
+            } else if (type === 'events') {
+                formatted = contacts.map(c => 
+                    `${c.org} | ${c.role} | ${c.email} | ${c.phone} | ${c.location} | ${c.service} | ${c.rate} | ${c.notes || 'N/A'}`
+                ).join('\n');
+            }
+
+            navigator.clipboard.writeText(formatted).then(() => {
+                alert(`${contacts.length} contact(s) copied to clipboard! Paste into chat with "Add these contacts to my memory"`);
+            }).catch(err => {
+                console.error('Failed to copy:', err);
+                alert('Failed to copy to clipboard');
+            });
+        }
+
+        function renderList(type) {
+            let contacts = JSON.parse(localStorage.getItem(STORAGE_KEYS[type]) || '[]');
+            const listEl = document.getElementById(type + '-list');
+
+            if (contacts.length === 0) {
+                listEl.innerHTML = '<div class="empty-state">No contacts yet. Add one above.</div>';
+                return;
+            }
+
+            listEl.innerHTML = contacts.map((c, i) => `
+                <div class="contact-card">
+                    <div class="contact-info">
+                        <h3>${c.name || c.org}</h3>
+                        <p>${c.role || c.contact || ''}</p>
+                        <p>${c.email}</p>
+                        <p>${c.phone}</p>
+                        ${c.location ? `<p>📍 ${c.location}</p>` : ''}
+                        ${c.rate ? `<p>💰 ${c.rate}</p>` : ''}
+                        ${c.service ? `<p>🔧 ${c.service}</p>` : ''}
+                        ${c.notes ? `<p style="color: #999; margin-top: 8px;">📝 ${c.notes}</p>` : ''}
+                    </div>
+                    <div class="contact-actions">
+                        <button class="btn-small" onclick="deleteContact('${type}', ${i})">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Load on init
+        document.addEventListener('DOMContentLoaded', () => {
+            renderList('pitchcraft');
+        });
+    </script>
+</body>
+</html>
