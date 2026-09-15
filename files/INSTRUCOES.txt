@@ -1,0 +1,38 @@
+INSTALAR NO iPHONE
+==================
+
+Ficheiros necessários:
+1. index.html
+2. manifest.json
+3. sw.js
+
+PASSO 1: Guardar os ficheiros
+- Descarrega os 3 ficheiros
+- Cria uma pasta chamada "priority-app"
+- Coloca os 3 ficheiros dentro
+
+PASSO 2: Colocar online (via GitHub Pages ou outro hosting)
+A forma mais fácil:
+1. Cria uma conta em GitHub (grátis)
+2. Cria um repositório chamado "priority-app"
+3. Faz upload dos 3 ficheiros para o repositório
+4. Vai em Settings > Pages
+5. Escolhe "Deploy from branch" e seleciona "main"
+6. GitHub dá-te um link (tipo: https://seunome.github.io/priority-app)
+
+PASSO 3: Instalar no iPhone
+1. No Safari, acede ao link do teu site (https://seunome.github.io/priority-app)
+2. Clica no botão "Partilhar" (ícone com caixa e seta)
+3. Scroll down e clica "Add to Home Screen" (ou "Adicionar à Tela de Início")
+4. Dá um nome e confirma
+
+PRONTO! A app fica na home screen como um atalho que funciona como app nativa.
+
+ALTERNATIVA (mais simples, sem GitHub):
+Se tiveres um servidor web, coloca os ficheiros lá e acede-os via HTTPS.
+
+FUNCIONALIDADES:
+- Funciona offline (após primeira abertura)
+- Dados guardados localmente no telefone
+- Sem necessidade de internet para usar
+- Acesso rápido desde a home screen
