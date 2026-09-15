@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#000000">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Priority App">
+  <link rel="manifest" href="manifest.json">
+  <title>Priority App</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg); color: var(--text); padding-top: max(12px, env(safe-area-inset-top)); transition: background 0.3s, color 0.3s; }
+    body.light-mode { --bg: #f5f5f5; --text: #333; --card-bg: white; --border: #ddd; --input-bg: white; --muted: #999; --input-border: #ddd; }
+    body.dark-mode { --bg: #1a1a1a; --text: #f0f0f0; --card-bg: #2a2a2a; --border: #444; --input-bg: #333; --muted: #aaa; --input-border: #555; }
+    .container { max-width: 100%; margin: 0 auto; padding: 1rem; }
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+    h1 { font-size: 24px; font-weight: 500; }
+    .header-actions { display: flex; gap: 8px; }
+    .theme-toggle { padding: 8px 12px; background: var(--card-bg); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 16px; -webkit-appearance: none; }
+    .search-box { background: var(--card-bg); padding: 1rem; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 1.5rem; }
+    .search-box input { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; background: var(--input-bg); color: var(--text); font-size: 16px; -webkit-appearance: none; }
+    .stats-bar { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 1.5rem; }
+    .stat-card { background: var(--card-bg); padding: 12px; border-radius: 6px; border: 1px solid var(--border); text-align: center; font-size: 12px; }
+    .stat-number { font-size: 18px; font-weight: 500; color: var(--text); }
+    .stat-label { color: var(--muted); margin-top: 4px; }
+    .input-section { background: var(--card-bg); padding: 1rem; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 1.5rem; }
+    .input-row { display: flex; gap: 8px; margin-bottom: 10px; }
+    .input-row input, .input-row select { padding: 12px; border: 1px solid var(--input-border); border-radius: 6px; font-size: 16px; background: var(--input-bg); color: var(--text); }
+    .input-row input { flex: 1; }
+    .input-row select { min-width: 110px; -webkit-appearance: none; appearance: none; }
+    button { padding: 12px 16px; background: #333; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: 500; -webkit-appearance: none; }
+    button.secondary { background: var(--card-bg); color: var(--text); border: 1px solid var(--border); }
+    button.danger { background: #e24b4a; }
+    button.small { padding: 6px 12px; font-size: 12px; }
+    .filter-buttons { display: flex; gap: 8px; margin-bottom: 1rem; flex-wrap: wrap; }
+    .filter-btn { padding: 8px 12px; background: var(--card-bg); color: var(--text); border: 1px solid var(--border); border-radius: 6px; font-size: 13px; white-space: nowrap; -webkit-appearance: none; }
+    .filter-btn.active { background: #333; color: white; border-color: #333; font-weight: 500; }
+    .color-pharmacy { border-left-color: #8b5cf6 !important; }
+    .color-pitchcraft { border-left-color: #06b6d4 !important; }
+    .color-c4stro { border-left-color: #f59e0b !important; }
+    .tasks-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 1rem; }
+    .task-item { display: flex; flex-direction: column; gap: 8px; padding: 12px; background: var(--card-bg); border: 1px solid var(--border); border-left: 3px solid #333; border-radius: 6px; }
+    .task-item.done { opacity: 0.6; }
+    .task-item.urgent { border-left-color: #e24b4a; }
+    .task-header { display: flex; gap: 12px; }
+    .task-item input { margin-top: 4px; width: 20px; height: 20px; flex-shrink: 0; }
+    .task-content { flex: 1; min-width: 0; }
+    .task-title { font-size: 14px; margin-bottom: 4px; word-break: break-word; }
+    .task-item.done .task-title { text-decoration: line-through; color: var(--muted); }
+    .task-meta { display: flex; gap: 8px; font-size: 12px; color: var(--muted); flex-wrap: wrap; }
+    .task-tag { background: var(--input-bg); padding: 2px 6px; border-radius: 3px; font-size: 11px; }
+    .task-deadline { background: #fee2e2; color: #e24b4a; padding: 2px 6px; border-radius: 3px; }
+    .task-actions { display: flex; gap: 6px; }
+    .task-delete, .task-duplicate { background: none; border: none; color: var(--muted); padding: 4px 8px; font-size: 16px; -webkit-appearance: none; cursor: pointer; }
+    .empty-state { text-align: center; padding: 2rem 1rem; color: var(--muted); font-size: 14px; }
+    .stats { margin-top: 1rem; padding: 12px; background: var(--card-bg); border: 1px solid var(--border); border-radius: 6px; font-size: 13px; color: var(--muted); text-align: center; }
+    .priority-badge { font-weight: 500; font-size: 12px; }
+    .priority-high { color: #e24b4a; }
+    .priority-medium { color: #ba7517; }
+    .priority-low { color: #888; }
+    .c4stro-section { display: none; background: var(--card-bg); padding: 1rem; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 1.5rem; }
+    .c4stro-section.active { display: block; }
+    .c4stro-section h2 { font-size: 16px; margin-bottom: 1rem; font-weight: 500; }
+    .form-group { margin-bottom: 12px; }
+    .form-group label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 4px; font-weight: 500; }
+    .form-group input, .form-group select { width: 100%; padding: 12px; border: 1px solid var(--input-border); border-radius: 6px; font-size: 16px; background: var(--input-bg); color: var(--text); -webkit-appearance: none; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .dates-section { background: var(--input-bg); padding: 12px; border-radius: 6px; margin: 12px 0; display: none; }
+    .dates-section.active { display: block; }
+    .dates-section h4 { font-size: 13px; font-weight: 500; margin-bottom: 12px; }
+    .date-input-group { margin-bottom: 8px; display: flex; gap: 8px; align-items: center; }
+    .date-input-group input { flex: 1; padding: 10px; border: 1px solid var(--input-border); border-radius: 4px; font-size: 14px; background: var(--input-bg); color: var(--text); }
+    .date-input-group span { font-size: 12px; color: var(--muted); min-width: 40px; }
+    .payments-list { margin-top: 1rem; }
+    .payment-item { background: var(--input-bg); padding: 12px; border-radius: 6px; border: 1px solid var(--border); margin-bottom: 8px; }
+    .payment-bar { font-weight: 500; font-size: 14px; margin-bottom: 8px; }
+    .payment-details { font-size: 12px; color: var(--muted); display: flex; gap: 12px; margin-bottom: 8px; }
+    .payment-dates { font-size: 11px; color: var(--muted); margin-bottom: 8px; }
+    .payment-actions { display: flex; gap: 6px; }
+    .payment-actions button { flex: 1; padding: 8px 12px; font-size: 12px; }
+    .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
+    .modal-overlay.active { display: flex; }
+    .modal { background: var(--card-bg); padding: 1.5rem; border-radius: 8px; width: 90%; max-height: 80vh; overflow-y: auto; color: var(--text); }
+    .modal h3 { margin-bottom: 1rem; font-size: 16px; }
+    .modal-buttons { display: flex; gap: 12px; margin-top: 1.5rem; justify-content: flex-end; }
+    .notification-banner { background: #fff3cd; border: 1px solid #ffc107; color: #856404; padding: 12px; border-radius: 6px; margin-bottom: 1rem; font-size: 13px; }
+  </style>
+</head>
+<body class="light-mode">
+  <div class="container">
+    <div class="header">
+      <h1>Priority App</h1>
+      <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
+    </div>
+    
+    <div class="search-box">
+      <input type="text" id="searchInput" placeholder="Procura tarefas..." onkeyup="render()">
+    </div>
+
+    <div class="stats-bar">
+      <div class="stat-card">
+        <div class="stat-number" id="tasksToday">0</div>
+        <div class="stat-label">Para Hoje</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="tasksTomorrow">0</div>
+        <div class="stat-label">Para Amanhã</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="tasksOverdue">0</div>
+        <div class="stat-label">Atrasadas</div>
+      </div>
+    </div>
+
+    <div id="notificationBanner" class="notification-banner" style="display: none;"></div>
+
+    <div class="input-section">
+      <div class="input-row">
+        <input type="text" id="taskInput" placeholder="Add a priority…">
+        <select id="projectSelect"><option>Pharmacy 22</option><option>Pitchcraft</option><option>C4STRO</option></select>
+      </div>
+      <div class="input-row">
+        <input type="date" id="taskDeadline">
+        <input type="text" id="taskTags" placeholder="Tags: #urgent #booking">
+        <select id="prioritySelect"><option value="low">Low</option><option value="medium" selected>Medium</option><option value="high">High</option></select>
+      </div>
+      <button onclick="addTask()" style="width: 100%;">Add</button>
+    </div>
+
+    <div class="c4stro-section" id="c4stroSection">
+      <h2>Recibos & Payments</h2>
+      <div class="form-group"><label>Nome do bar / Spot</label><input type="text" id="barName" placeholder="Ex: Bar do João"></div>
+      <div class="form-group"><label>Email de contacto</label><input type="email" id="barEmail" placeholder="contacto@bar.com"></div>
+      <div class="form-row">
+        <div class="form-group"><label>Vezes que tocaste</label><input type="number" id="gigsCount" value="1" min="1" onchange="updateDateInputs()"></div>
+        <div class="form-group"><label>Valor a receber (€)</label><input type="number" id="paymentAmount" step="0.01" min="0"></div>
+      </div>
+      <div class="dates-section" id="datesSection"><h4>Data de cada apresentação</h4><div id="dateInputsContainer"></div></div>
+      <button onclick="addPayment()" style="width: 100%; margin-top: 12px;">Adicionar Gig</button>
+      <div class="payments-list" id="paymentsList"></div>
+    </div>
+
+    <div class="filter-buttons" id="filterButtons"></div>
+    <div class="tasks-list" id="tasksList"></div>
+    
+    <div class="stats">
+      <strong id="activeCount">0</strong> active · <strong id="doneCount">0</strong> done
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="receiptModal">
+    <div class="modal">
+      <h3>Enviar Recibo</h3>
+      <p id="receiptPreview" style="font-size: 13px; line-height: 1.8; color: var(--text);"></p>
+      <div class="modal-buttons">
+        <button class="secondary" onclick="closeReceiptModal()">Cancelar</button>
+        <button onclick="sendReceiptToGmail()">Enviar via Gmail</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+
+    const STORAGE_KEY = 'priority-app-tasks';
+    const PAYMENTS_KEY = 'c4stro-payments';
+    const THEME_KEY = 'priority-app-theme';
+    const projects = ['Pharmacy 22', 'Pitchcraft', 'C4STRO'];
+    const projectColors = {
+      'Pharmacy 22': '#8b5cf6',
+      'Pitchcraft': '#06b6d4',
+      'C4STRO': '#f59e0b'
+    };
+    let tasks = [], payments = [], currentFilter = 'all', currentPaymentId = null;
+
+    function toggleTheme() {
+      const body = document.body;
+      body.classList.toggle('light-mode');
+      body.classList.toggle('dark-mode');
+      localStorage.setItem(THEME_KEY, body.classList.contains('dark-mode') ? 'dark' : 'light');
+      updateThemeButton();
+    }
+
+    function updateThemeButton() {
+      const btn = document.querySelector('.theme-toggle');
+      btn.textContent = document.body.classList.contains('dark-mode') ? '☀️' : '🌙';
+    }
+
+    function loadTheme() {
+      const saved = localStorage.getItem(THEME_KEY);
+      if (saved === 'dark') {
+        document.body.classList.remove('light-mode');
+        document.body.classList.add('dark-mode');
+      }
+      updateThemeButton();
+    }
+
+    function loadData() {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) tasks = JSON.parse(stored);
+      const paymentStored = localStorage.getItem(PAYMENTS_KEY);
+      if (paymentStored) payments = JSON.parse(paymentStored);
+      render();
+      checkDeadlines();
+    }
+
+    function saveData() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+      localStorage.setItem(PAYMENTS_KEY, JSON.stringify(payments));
+    }
+
+    function addTask() {
+      const input = document.getElementById('taskInput');
+      const project = document.getElementById('projectSelect').value;
+      const priority = document.getElementById('prioritySelect').value;
+      const deadline = document.getElementById('taskDeadline').value;
+      const tagsInput = document.getElementById('taskTags').value;
+      const tags = tagsInput.split(' ').filter(t => t.startsWith('#')).map(t => t.toLowerCase());
+      
+      if (!input.value.trim()) return;
+      
+      tasks.unshift({ 
+        id: Date.now(), 
+        title: input.value, 
+        project, 
+        priority, 
+        done: false, 
+        deadline: deadline || null,
+        tags: tags || []
+      });
+      saveData();
+      input.value = '';
+      document.getElementById('taskDeadline').value = '';
+      document.getElementById('taskTags').value = '';
+      render();
+    }
+
+    function duplicateTask(id) {
+      const task = tasks.find(t => t.id === id);
+      if (task) {
+        tasks.unshift({
+          id: Date.now(),
+          title: task.title,
+          project: task.project,
+          priority: task.priority,
+          done: false,
+          deadline: null,
+          tags: [...task.tags]
+        });
+        saveData();
+        render();
+      }
+    }
+
+    function isUrgent(deadline) {
+      if (!deadline) return false;
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const deadlineDate = new Date(deadline + 'T00:00:00');
+      const daysUntil = Math.ceil((deadlineDate - today) / (1000 * 60 * 60 * 24));
+      return daysUntil >= 0 && daysUntil <= 2;
+    }
+
+    function formatDeadline(dateStr) {
+      if (!dateStr) return null;
+      const date = new Date(dateStr + 'T00:00:00');
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const daysUntil = Math.ceil((date - today) / (1000 * 60 * 60 * 24));
+      
+      if (daysUntil === 0) return 'Hoje';
+      if (daysUntil === 1) return 'Amanhã';
+      if (daysUntil === -1) return 'Atrasado';
+      if (daysUntil < 0) return `${Math.abs(daysUntil)}d atrasado`;
+      return `${daysUntil}d`;
+    }
+
+    function getTasksForDay(daysOffset) {
+      const date = new Date();
+      date.setDate(date.getDate() + daysOffset);
+      date.setHours(0, 0, 0, 0);
+      const dateStr = date.toISOString().split('T')[0];
+      return tasks.filter(t => !t.done && t.deadline === dateStr).length;
+    }
+
+    function getOverdueTasks() {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      return tasks.filter(t => {
+        if (!t.deadline || t.done) return false;
+        const deadlineDate = new Date(t.deadline + 'T00:00:00');
+        return deadlineDate < today;
+      }).length;
+    }
+
+    function updateStats() {
+      document.getElementById('tasksToday').textContent = getTasksForDay(0);
+      document.getElementById('tasksTomorrow').textContent = getTasksForDay(1);
+      document.getElementById('tasksOverdue').textContent = getOverdueTasks();
+    }
+
+    function checkDeadlines() {
+      const activeTasks = tasks.filter(t => !t.done && t.deadline && isUrgent(t.deadline));
+      
+      activeTasks.forEach(task => {
+        const deadline = new Date(task.deadline + 'T00:00:00');
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const daysUntil = Math.ceil((deadline - today) / (1000 * 60 * 60 * 24));
+        
+        if (daysUntil === 0 && 'Notification' in window && Notification.permission === 'granted') {
+          new Notification('Deadline Hoje!', {
+            body: task.title,
+            tag: `deadline-${task.id}`,
+            requireInteraction: false
+          });
+        }
+      });
+
+      if (activeTasks.length > 0) {
+        const banner = document.getElementById('notificationBanner');
+        const urgentList = activeTasks.map(t => `${t.title} (${formatDeadline(t.deadline)})`).join(', ');
+        banner.textContent = `⚠️ Tarefas urgentes: ${urgentList}`;
+        banner.style.display = 'block';
+      } else {
+        document.getElementById('notificationBanner').style.display = 'none';
+      }
+    }
+
+    function updateDateInputs() {
+      const gigsCount = parseInt(document.getElementById('gigsCount').value) || 1;
+      const section = document.getElementById('datesSection');
+      if (gigsCount > 0) {
+        section.classList.add('active');
+        let html = '';
+        for (let i = 1; i <= gigsCount; i++) html += `<div class="date-input-group"><span>Gig ${i}:</span><input type="date" id="gigDate${i}"></div>`;
+        document.getElementById('dateInputsContainer').innerHTML = html;
+      }
+    }
+
+    function getGigDates() {
+      const gigsCount = parseInt(document.getElementById('gigsCount').value) || 1;
+      const dates = [];
+      for (let i = 1; i <= gigsCount; i++) {
+        const dateInput = document.getElementById(`gigDate${i}`);
+        if (dateInput && dateInput.value) dates.push(dateInput.value);
+      }
+      return dates;
+    }
+
+    function addPayment() {
+      const barName = document.getElementById('barName').value.trim();
+      const barEmail = document.getElementById('barEmail').value.trim();
+      const gigsCount = parseInt(document.getElementById('gigsCount').value) || 1;
+      const amount = parseFloat(document.getElementById('paymentAmount').value) || 0;
+      const dates = getGigDates();
+      if (!barName || !barEmail || amount <= 0) { alert('Preenche todos os campos'); return; }
+      if (dates.length === 0) { alert('Preenche pelo menos uma data'); return; }
+      payments.unshift({ id: Date.now(), bar: barName, email: barEmail, gigs: gigsCount, amount, dates });
+      saveData();
+      document.getElementById('barName').value = '';
+      document.getElementById('barEmail').value = '';
+      document.getElementById('gigsCount').value = '1';
+      document.getElementById('paymentAmount').value = '';
+      updateDateInputs();
+      renderPayments();
+    }
+
+    function formatDate(dateStr) {
+      return new Date(dateStr + 'T00:00:00').toLocaleDateString('pt-PT');
+    }
+
+    function previewReceipt(paymentId) {
+      const payment = payments.find(p => p.id === paymentId);
+      if (!payment) return;
+      currentPaymentId = paymentId;
+      let datesHTML = payment.dates.map((d, idx) => `Apresentação ${idx + 1}: ${formatDate(d)}`).join('<br>');
+      const preview = `<strong>Recibo de Pagamento</strong><br><br><strong>Bar/Spot:</strong> ${payment.bar}<br><strong>Email:</strong> ${payment.email}<br><br><strong>Apresentações:</strong><br>${datesHTML}<br><br><strong>Número total:</strong> ${payment.gigs}<br><strong>Valor total:</strong> €${payment.amount.toFixed(2)}<br><strong>Valor por apresentação:</strong> €${(payment.amount / payment.gigs).toFixed(2)}<br><br><em>Data: ${new Date().toLocaleDateString('pt-PT')}</em>`;
+      document.getElementById('receiptPreview').innerHTML = preview;
+      document.getElementById('receiptModal').classList.add('active');
+    }
+
+    function closeReceiptModal() {
+      document.getElementById('receiptModal').classList.remove('active');
+      currentPaymentId = null;
+    }
+
+    function sendReceiptToGmail() {
+      const payment = payments.find(p => p.id === currentPaymentId);
+      if (!payment) return;
+      const subject = `Recibo de Pagamento - ${payment.bar}`;
+      let datesText = payment.dates.map((d, idx) => `Apresentação ${idx + 1}: ${formatDate(d)}`).join('\n');
+      const body = `Olá,\n\nSegue o recibo de pagamento pelas minhas apresentações em ${payment.bar}.\n\nDetalhes:\n${datesText}\n\n- Número de apresentações: ${payment.gigs}\n- Valor total: €${payment.amount.toFixed(2)}\n- Valor por apresentação: €${(payment.amount / payment.gigs).toFixed(2)}\n\nData: ${new Date().toLocaleDateString('pt-PT')}\n\nObrigado!`;
+      window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(payment.email)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`, '_blank');
+      closeReceiptModal();
+      setTimeout(() => { payments = payments.filter(p => p.id !== currentPaymentId); saveData(); renderPayments(); }, 500);
+    }
+
+    function deletePayment(id) {
+      if (confirm('Apagar?')) { payments = payments.filter(p => p.id !== id); saveData(); renderPayments(); }
+    }
+
+    function toggleTask(id) {
+      const task = tasks.find(t => t.id === id);
+      if (task) { task.done = !task.done; saveData(); render(); }
+    }
+
+    function deleteTask(id) {
+      tasks = tasks.filter(t => t.id !== id);
+      saveData();
+      render();
+    }
+
+    function setFilter(filter) {
+      currentFilter = filter;
+      render();
+    }
+
+    function getFilteredTasks() {
+      const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+      let filtered = tasks;
+      
+      if (currentFilter === 'active') {
+        filtered = filtered.filter(t => !t.done);
+      } else if (currentFilter === 'done') {
+        filtered = filtered.filter(t => t.done);
+      } else if (currentFilter !== 'all' && currentFilter !== 'C4STRO') {
+        filtered = filtered.filter(t => t.project === currentFilter);
+      }
+      
+      if (searchTerm) {
+        filtered = filtered.filter(t => 
+          t.title.toLowerCase().includes(searchTerm) || 
+          t.tags.some(tag => tag.includes(searchTerm.replace('#', '')))
+        );
+      }
+      
+      return filtered.sort((a, b) => {
+        if (a.deadline && b.deadline) {
+          return new Date(a.deadline) - new Date(b.deadline);
+        } else if (a.deadline) {
+          return -1;
+        } else if (b.deadline) {
+          return 1;
+        }
+        return 0;
+      });
+    }
+
+    function getProjectStats(project) {
+      return tasks.filter(t => t.project === project && !t.done).length;
+    }
+
+    function renderPayments() {
+      const container = document.getElementById('paymentsList');
+      if (payments.length === 0) { container.innerHTML = ''; return; }
+      container.innerHTML = payments.map(p => {
+        const datesStr = p.dates.map(d => formatDate(d)).join(', ');
+        return `<div class="payment-item"><div class="payment-bar">${p.bar}</div><div class="payment-details"><span>${p.gigs}x</span><span>€${p.amount.toFixed(2)}</span></div><div class="payment-dates">${datesStr}</div><div class="payment-actions"><button class="secondary" onclick="previewReceipt(${p.id})">Enviar</button><button class="danger" onclick="deletePayment(${p.id})">×</button></div></div>`;
+      }).join('');
+    }
+
+    function render() {
+      renderFilterButtons();
+      renderTasks();
+      renderStats();
+      updateStats();
+      renderC4stroSection();
+      checkDeadlines();
+    }
+
+    function renderC4stroSection() {
+      const showC4stro = currentFilter === 'C4STRO';
+      const section = document.getElementById('c4stroSection');
+      if (showC4stro) {
+        section.classList.add('active');
+        renderPayments();
+      } else {
+        section.classList.remove('active');
+      }
+    }
+
+    function renderFilterButtons() {
+      const container = document.getElementById('filterButtons');
+      container.innerHTML = '';
+      
+      const filters = [
+        { name: 'All', value: 'all' },
+        { name: 'Active', value: 'active' },
+        { name: 'Done', value: 'done' },
+        ...projects.map(p => ({ name: p, value: p }))
+      ];
+      
+      filters.forEach(f => {
+        const btn = document.createElement('button');
+        btn.className = 'filter-btn' + (currentFilter === f.value ? ' active' : '');
+        const count = f.value === 'all' ? tasks.length : f.value === 'active' ? tasks.filter(t => !t.done).length : f.value === 'done' ? tasks.filter(t => t.done).length : getProjectStats(f.value);
+        btn.textContent = `${f.name}${count > 0 ? ` (${count})` : ''}`;
+        btn.onclick = () => setFilter(f.value);
+        container.appendChild(btn);
+      });
+    }
+
+    function renderTasks() {
+      const container = document.getElementById('tasksList');
+      const filtered = getFilteredTasks();
+      if (filtered.length === 0) { container.innerHTML = '<div class="empty-state">No priorities yet.</div>'; return; }
+      
+      container.innerHTML = filtered.map(task => {
+        const urgent = isUrgent(task.deadline);
+        const deadlineText = formatDeadline(task.deadline);
+        const tagsHTML = task.tags.map(tag => `<span class="task-tag">${tag}</span>`).join('');
+        const projectColor = projectColors[task.project] || '#333';
+        
+        return `<div class="task-item ${task.done ? 'done' : ''} ${urgent ? 'urgent' : ''}" style="border-left-color: ${projectColor}"><div class="task-header"><input type="checkbox" ${task.done ? 'checked' : ''} onchange="toggleTask(${task.id})"><div class="task-content"><div class="task-title">${escapeHtml(task.title)}</div><div class="task-meta"><span>${task.project}</span><span class="priority-badge priority-${task.priority}">${task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}</span>${deadlineText ? `<span class="task-deadline">${deadlineText}</span>` : ''}${tagsHTML}</div></div></div><div class="task-actions"><button class="task-duplicate small" onclick="duplicateTask(${task.id})" title="Duplicar">📋</button><button class="task-delete" onclick="deleteTask(${task.id})">✕</button></div></div>`;
+      }).join('');
+    }
+
+    function renderStats() {
+      const active = tasks.filter(t => !t.done).length;
+      const done = tasks.filter(t => t.done).length;
+      document.getElementById('activeCount').textContent = active;
+      document.getElementById('doneCount').textContent = done;
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    document.getElementById('taskInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') addTask(); });
+    
+    loadTheme();
+    loadData();
+    setInterval(checkDeadlines, 60000);
+  </script>
+</body>
+</html>
