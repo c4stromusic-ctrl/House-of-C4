@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sold Out Tracker — Pharmacy 22</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #0a0a0a;
+            color: #e0e0e0;
+            padding: 1rem;
+            padding-top: max(1rem, env(safe-area-inset-top));
+            padding-bottom: max(1rem, env(safe-area-inset-bottom));
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        h1 {
+            font-size: 24px;
+            margin-bottom: 0.5rem;
+            color: #fff;
+            font-weight: 500;
+        }
+        .subheader {
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 2rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .input-section {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .input-row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+        .input-row input,
+        .input-row select {
+            padding: 12px;
+            border: 1px solid #444;
+            border-radius: 6px;
+            background: #2a2a2a;
+            color: #e0e0e0;
+            font-size: 14px;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+        .input-row input::placeholder {
+            color: #666;
+        }
+        .input-row input {
+            flex: 1;
+            min-width: 150px;
+        }
+        .input-row select {
+            min-width: 120px;
+        }
+        button {
+            padding: 12px 18px;
+            background: #333;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background 0.2s;
+            -webkit-appearance: none;
+        }
+        button:active {
+            opacity: 0.8;
+        }
+        button.danger {
+            background: #e24b4a;
+            padding: 6px 10px;
+            font-size: 12px;
+        }
+        .sort-buttons {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+        .sort-btn {
+            padding: 8px 12px;
+            background: #2a2a2a;
+            color: #e0e0e0;
+            border: 1px solid #444;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+        .sort-btn.active {
+            background: #333;
+            border-color: #6b5eff;
+            color: #6b5eff;
+        }
+        .artists-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 2rem;
+        }
+        .artists-table thead {
+            background: #1a1a1a;
+        }
+        .artists-table th {
+            padding: 12px;
+            text-align: left;
+            font-size: 12px;
+            font-weight: 600;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            border-bottom: 1px solid #333;
+        }
+        .artists-table td {
+            padding: 12px;
+            border-bottom: 1px solid #2a2a2a;
+            font-size: 14px;
+        }
+        .artists-table tbody tr {
+            transition: background 0.2s;
+        }
+        .artists-table tbody tr:hover {
+            background: #1a1a1a;
+        }
+        .artist-name {
+            font-weight: 500;
+            color: #fff;
+        }
+        .releases-count {
+            font-weight: 600;
+            color: #4ade80;
+        }
+        .sellout-time {
+            color: #6b5eff;
+            font-weight: 500;
+        }
+        .sellout-time.fast {
+            color: #e85d5d;
+        }
+        .empty {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: #666;
+            font-size: 14px;
+        }
+        .delete-btn {
+            background: transparent;
+            color: #888;
+            border: none;
+            padding: 4px 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: color 0.2s;
+        }
+        .delete-btn:hover {
+            color: #e85d5d;
+        }
+        .stats-bar {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 2rem;
+        }
+        .stat-card {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 24px;
+            font-weight: 600;
+            color: #fff;
+        }
+        .stat-label {
+            font-size: 11px;
+            color: #888;
+            margin-top: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        .export-section {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid #333;
+        }
+        .export-btn {
+            background: #2a2a2a;
+            border: 1px solid #444;
+            padding: 10px 14px;
+            margin-right: 8px;
+        }
+        .export-btn:hover {
+            background: #333;
+        }
+        .note {
+            font-size: 12px;
+            color: #666;
+            margin-top: 1rem;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>💿 Sold Out Tracker</h1>
+        <div class="subheader">Pharmacy 22 — UKG market intelligence</div>
+
+        <div class="stats-bar" id="statsBar"></div>
+
+        <div class="input-section">
+            <div class="input-row">
+                <input type="text" id="artistInput" placeholder="Artist name (e.g., Zed Bias)" autocomplete="off">
+                <input type="number" id="releasesInput" placeholder="# of sold out releases" min="1" max="999">
+                <select id="selloutTimeSelect">
+                    <option value="">Sold out in...</option>
+                    <option value="1-2 days">1-2 days</option>
+                    <option value="3-7 days">3-7 days</option>
+                    <option value="1-2 weeks">1-2 weeks</option>
+                    <option value="2-4 weeks">2-4 weeks</option>
+                    <option value="1-2 months">1-2 months</option>
+                    <option value="2-3 months">2-3 months</option>
+                    <option value="3-6 months">3-6 months</option>
+                </select>
+                <button onclick="addArtist()">Add Artist</button>
+            </div>
+            <div class="note">
+                Add artists you've identified with a pattern of quick sold-out releases. This helps identify demand signals for Pharmacy 22 scouting.
+            </div>
+        </div>
+
+        <div class="sort-buttons">
+            <button class="sort-btn active" onclick="setSortBy('speed')">Fastest Sell-Out</button>
+            <button class="sort-btn" onclick="setSortBy('releases')">Most Releases Sold Out</button>
+            <button class="sort-btn" onclick="setSortBy('name')">Artist Name (A-Z)</button>
+        </div>
+
+        <table class="artists-table">
+            <thead>
+                <tr>
+                    <th>Artist</th>
+                    <th style="text-align: center;">Releases Sold Out</th>
+                    <th style="text-align: center;">Avg. Sell-Out Time</th>
+                    <th style="text-align: center;">Action</th>
+                </tr>
+            </thead>
+            <tbody id="artistsList"></tbody>
+        </table>
+
+        <div class="export-section">
+            <button class="export-btn" onclick="exportData()">📥 Export as CSV</button>
+            <button class="export-btn" onclick="clearAll()">🗑️ Clear All</button>
+            <div class="note">
+                Use exported data for Pharmacy 22 label/artist targeting strategy.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const STORAGE_KEY = 'sold_out_tracker';
+        let sortBy = 'speed';
+
+        function initData() {
+            let data = localStorage.getItem(STORAGE_KEY);
+            if (!data) {
+                const sampleData = [
+                    { id: Date.now(), artist: 'Zed Bias', releases: 6, selloutTime: '1-2 weeks' },
+                    { id: Date.now() + 1, artist: 'DJ Hermit', releases: 4, selloutTime: '3-7 days' },
+                    { id: Date.now() + 2, artist: 'DJ Deller', releases: 5, selloutTime: '1-2 weeks' }
+                ];
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(sampleData));
+                return sampleData;
+            }
+            return JSON.parse(data);
+        }
+
+        function getArtists() {
+            const data = localStorage.getItem(STORAGE_KEY);
+            return data ? JSON.parse(data) : [];
+        }
+
+        function saveData(data) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        }
+
+        function addArtist() {
+            const artist = document.getElementById('artistInput').value.trim();
+            const releases = parseInt(document.getElementById('releasesInput').value) || 0;
+            const selloutTime = document.getElementById('selloutTimeSelect').value;
+
+            if (!artist || releases <= 0 || !selloutTime) {
+                alert('Fill all fields');
+                return;
+            }
+
+            const artists = getArtists();
+            const existing = artists.findIndex(a => a.artist.toLowerCase() === artist.toLowerCase());
+
+            if (existing !== -1) {
+                // Update existing
+                artists[existing] = { ...artists[existing], releases, selloutTime };
+            } else {
+                // Add new
+                artists.push({ id: Date.now(), artist, releases, selloutTime });
+            }
+
+            saveData(artists);
+            document.getElementById('artistInput').value = '';
+            document.getElementById('releasesInput').value = '';
+            document.getElementById('selloutTimeSelect').value = '';
+            render();
+        }
+
+        function selloutTimeToScore(time) {
+            const scores = {
+                '1-2 days': 1,
+                '3-7 days': 2,
+                '1-2 weeks': 3,
+                '2-4 weeks': 4,
+                '1-2 months': 5,
+                '2-3 months': 6,
+                '3-6 months': 7
+            };
+            return scores[time] || 0;
+        }
+
+        function getSortedArtists() {
+            let artists = getArtists();
+
+            if (sortBy === 'speed') {
+                return artists.sort((a, b) => selloutTimeToScore(a.selloutTime) - selloutTimeToScore(b.selloutTime));
+            } else if (sortBy === 'releases') {
+                return artists.sort((a, b) => b.releases - a.releases);
+            } else if (sortBy === 'name') {
+                return artists.sort((a, b) => a.artist.localeCompare(b.artist));
+            }
+
+            return artists;
+        }
+
+        function setSortBy(type) {
+            sortBy = type;
+            document.querySelectorAll('.sort-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            render();
+        }
+
+        function deleteArtist(id) {
+            if (confirm('Remove this artist?')) {
+                const artists = getArtists().filter(a => a.id !== id);
+                saveData(artists);
+                render();
+            }
+        }
+
+        function clearAll() {
+            if (confirm('Clear all artists? This cannot be undone.')) {
+                localStorage.removeItem(STORAGE_KEY);
+                render();
+            }
+        }
+
+        function exportData() {
+            const artists = getSortedArtists();
+            let csv = 'Artist,Releases Sold Out,Avg. Sell-Out Time\n';
+            artists.forEach(a => {
+                csv += `"${a.artist}",${a.releases},"${a.selloutTime}"\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', `sold-out-tracker-${new Date().toISOString().split('T')[0]}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function isFastSellout(time) {
+            const fastTimes = ['1-2 days', '3-7 days'];
+            return fastTimes.includes(time);
+        }
+
+        function renderStats() {
+            const artists = getArtists();
+            const totalReleases = artists.reduce((sum, a) => sum + a.releases, 0);
+            const avgTime = artists.length > 0 
+                ? (artists.reduce((sum, a) => sum + selloutTimeToScore(a.selloutTime), 0) / artists.length).toFixed(1)
+                : 0;
+
+            document.getElementById('statsBar').innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-number">${artists.length}</div>
+                    <div class="stat-label">Artists Tracked</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${totalReleases}</div>
+                    <div class="stat-label">Total Sold Out</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${avgTime}</div>
+                    <div class="stat-label">Avg. Speed Score</div>
+                </div>
+            `;
+        }
+
+        function render() {
+            const artists = getSortedArtists();
+            const tbody = document.getElementById('artistsList');
+
+            if (artists.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="empty">No artists tracked yet. Add one to start!</td></tr>';
+                renderStats();
+                return;
+            }
+
+            tbody.innerHTML = artists.map(a => {
+                const isFast = isFastSellout(a.selloutTime);
+                return `
+                    <tr>
+                        <td class="artist-name">${a.artist}</td>
+                        <td style="text-align: center;"><span class="releases-count">${a.releases}</span></td>
+                        <td style="text-align: center;"><span class="sellout-time ${isFast ? 'fast' : ''}">${a.selloutTime}</span></td>
+                        <td style="text-align: center;">
+                            <button class="delete-btn" onclick="deleteArtist(${a.id})">✕</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            renderStats();
+        }
+
+        document.getElementById('artistInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') addArtist();
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initData();
+            render();
+        });
+    </script>
+</body>
+</html>
